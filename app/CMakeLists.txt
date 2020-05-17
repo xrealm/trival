@@ -10,14 +10,55 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+
+include_directories(src/main/cpp)
+include_directories(src/main/cpp/include)
+include_directories(src/main/jniLibs/include)
+
+add_library(
+        png
+        STATIC
+        IMPORTED
+)
+
+set_target_properties(
+        png
+        PROPERTIES IMPORTED_LOCATION
+        src/main/cpp/libpng/libpng.a
+)
+
+add_library(
+        ffmpeg
+        SHARED
+        IMPORTED
+)
+
+set_target_properties(
+        ffmpeg
+        PROPERTIES IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libffmpeg.so
+)
+
+
 add_library( # Sets the name of the library.
-             native-lib
+        triangle
 
-             # Sets the library as a shared library.
-             SHARED
+        # Sets the library as a shared library.
+        SHARED
 
-             # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+        # Provides a relative path to your source file(s).
+        src/main/cpp/triangle.cpp
+        src/main/cpp/shader.h
+        src/main/cpp/util.h
+        src/main/cpp/render/rgba_frame.h
+        src/main/cpp/render/rgba_frame.cpp
+        src/main/cpp/render/pic_texture.h
+        src/main/cpp/render/pic_texture.cpp
+        src/main/cpp/render/preview_render.cpp
+        src/main/cpp/render/egl_core.cpp
+        src/main/cpp/render/egl_share_context.cpp
+        src/main/cpp/render/preview_controller.cpp
+        )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -26,19 +67,41 @@ add_library( # Sets the name of the library.
 # completing its build.
 
 find_library( # Sets the name of the path variable.
-              log-lib
+        log-lib
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+        # Specifies the name of the NDK library that
+        # you want CMake to locate.
+        log)
+
+#link with opengl es
+find_library(
+        gl-lib
+        GLESv3
+)
+
+find_library(
+        egl-lib
+        EGL
+)
+
+find_library(
+        android-lib
+        android
+)
+
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+        triangle
+        ffmpeg
+        z
+        OpenSLES
+        ${android-lib}
+        ${egl-lib}
+        ${gl-lib}
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib})
